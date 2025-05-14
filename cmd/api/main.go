@@ -1,6 +1,7 @@
 package main
 
 import (
+	"AlexsandroBezerra/go-notify/internal/api/handlers"
 	"fmt"
 	"net/http"
 	"os"
@@ -20,8 +21,8 @@ func main() {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/emails", func(r chi.Router) {
-		r.Get("/", notImplementedHandler)
-		r.Post("/", notImplementedHandler)
+		r.Get("/", handlers.ListEmails)
+		r.Post("/", handlers.CreateEmail)
 	})
 
 	err := http.ListenAndServe(":3333", r)
@@ -29,9 +30,4 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func notImplementedHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Route not implemented yet"))
 }
