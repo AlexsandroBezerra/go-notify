@@ -1,7 +1,7 @@
 package router
 
 import (
-	"AlexsandroBezerra/go-notify/internal/api/handlers"
+	"AlexsandroBezerra/go-notify/internal/api/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 )
@@ -15,7 +15,7 @@ func NewEmailRouter(databaseConnection *pgx.Conn) *EmailRouter {
 }
 
 func (e *EmailRouter) RegisterRoutes(r chi.Router) {
-	emailHandler := handlers.NewEmailHandler(e.databaseConnection)
+	emailHandler := handler.NewEmailHandler(e.databaseConnection)
 
 	r.Route("/emails", func(r chi.Router) {
 		r.Get("/", emailHandler.ListEmails)

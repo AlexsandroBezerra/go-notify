@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"AlexsandroBezerra/go-notify/internal/application/dto/request"
