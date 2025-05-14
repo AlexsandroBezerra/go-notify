@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"AlexsandroBezerra/go-notify/internal/application/dto"
+	"AlexsandroBezerra/go-notify/internal/application/dto/request"
+	"AlexsandroBezerra/go-notify/internal/application/dto/response"
 	"AlexsandroBezerra/go-notify/internal/application/usecase"
 	"encoding/json"
-	"fmt"
 	"github.com/jackc/pgx/v5"
 	"net/http"
 )
@@ -18,38 +18,25 @@ func NewEmailHandler(databaseConnection *pgx.Conn) *EmailHandler {
 }
 
 func (e *EmailHandler) ListEmails(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Route not implemented yet"))
+	writeString(w, http.StatusNotFound, "Not implemented yet")
 }
 
 func (e *EmailHandler) CreateEmail(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var params dto.CreateEmailRequest
+	var params request.CreateEmail
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		writeError(w, http.StatusBadRequest, err)
 		return
 	}
 	useCase := usecase.NewCreateEmail(e.databaseConnection)
 	id, err := useCase.Execute(ctx, params)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response := dto.CreateEmailResponse{
+	writeJSON(w, http.StatusCreated, response.CreateEmail{
 		ID: id,
-	}
-
-	w.Header().Set("Content-Type", "application/json; utf-8")
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
+	})
 }

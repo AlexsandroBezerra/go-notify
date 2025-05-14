@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"AlexsandroBezerra/go-notify/internal/application/dto"
+	"AlexsandroBezerra/go-notify/internal/application/dto/request"
 	repository "AlexsandroBezerra/go-notify/internal/storage/postgres"
 	"context"
 	"github.com/jackc/pgx/v5"
@@ -16,7 +16,7 @@ func NewCreateEmail(databaseConnection *pgx.Conn) *CreateEmail {
 	return &CreateEmail{queries}
 }
 
-func (c *CreateEmail) Execute(ctx context.Context, params dto.CreateEmailRequest) (string, error) {
+func (c *CreateEmail) Execute(ctx context.Context, params request.CreateEmail) (string, error) {
 	email, err := c.queries.CreateEmail(ctx, repository.CreateEmailParams{
 		Recipient: params.Recipient,
 		Subject:   params.Subject,
