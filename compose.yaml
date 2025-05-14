@@ -10,6 +10,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+  nats:
+    container_name: go-notify-nats
+    image: nats:2.11-alpine
+    ports:
+      - "4222:4222"
 
 volumes:
   postgres_data:

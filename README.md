@@ -10,7 +10,7 @@ A Project to send emails made with Go.
 
 ## Todo
 
-- [ ] Add async processing (with RabbitMQ)
+- [x] Add async processing (with NATS)
 - [ ] Improve logs
 - [ ] Improve error handling
 - [ ] Add tests
