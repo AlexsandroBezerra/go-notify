@@ -1,9 +1,9 @@
 package usecase
 
 import (
+	"AlexsandroBezerra/go-notify/internal/application/dto"
 	repository "AlexsandroBezerra/go-notify/internal/storage/postgres"
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -16,16 +16,17 @@ func NewCreateEmail(databaseConnection *pgx.Conn) *CreateEmail {
 	return &CreateEmail{queries}
 }
 
-func (c *CreateEmail) Execute(ctx context.Context) {
+func (c *CreateEmail) Execute(ctx context.Context, params dto.CreateEmailRequest) (string, error) {
 	email, err := c.queries.CreateEmail(ctx, repository.CreateEmailParams{
-		Recipient: "me@alexsandrobezerra.dev",
-		Subject:   "Test",
-		Body:      "Just a message...",
-		Priority:  1,
-		Status:    repository.DeliveryStatus("pending"),
+		Recipient: params.Recipient,
+		Subject:   params.Subject,
+		Body:      params.Body,
+		Priority:  params.Priority,
+		Status:    repository.DeliveryStatusPending,
 	})
 	if err != nil {
-		panic(err) // TODO: handle error
+		return "", err
 	}
-	fmt.Println(email)
+
+	return email.String(), nil
 }

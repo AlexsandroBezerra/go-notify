@@ -1,2 +1,10 @@
 ### Create email
 POST http://localhost:3333/emails
+Content-Type: application/json
+
+{
+  "recipient": "me@alexsandrobezerra.dev",
+  "subject": "Test",
+  "body": "Just a test...",
+  "priority": 1
+}

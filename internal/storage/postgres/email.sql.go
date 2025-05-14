@@ -7,12 +7,14 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createEmail = `-- name: CreateEmail :one
 INSERT INTO emails (recipient, subject, body, priority, status)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, recipient, subject, body, priority, status, created_at
+RETURNING id
 `
 
 type CreateEmailParams struct {
@@ -23,7 +25,7 @@ type CreateEmailParams struct {
 	Status    DeliveryStatus
 }
 
-func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (Email, error) {
+func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, createEmail,
 		arg.Recipient,
 		arg.Subject,
@@ -31,15 +33,7 @@ func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (Email
 		arg.Priority,
 		arg.Status,
 	)
-	var i Email
-	err := row.Scan(
-		&i.ID,
-		&i.Recipient,
-		&i.Subject,
-		&i.Body,
-		&i.Priority,
-		&i.Status,
-		&i.CreatedAt,
-	)
-	return i, err
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
 }
