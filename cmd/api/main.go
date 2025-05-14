@@ -1,8 +1,10 @@
 package main
 
 import (
-	"AlexsandroBezerra/go-notify/internal/api/handlers"
+	"AlexsandroBezerra/go-notify/internal/api/router"
+	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"net/http"
 	"os"
 	"time"
@@ -12,6 +14,13 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
+	postgresConnection, err := pgx.Connect(ctx, "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -20,12 +29,10 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Route("/emails", func(r chi.Router) {
-		r.Get("/", handlers.ListEmails)
-		r.Post("/", handlers.CreateEmail)
-	})
+	emailRouter := router.NewEmailRouter(postgresConnection)
+	emailRouter.RegisterRoutes(r)
 
-	err := http.ListenAndServe(":3333", r)
+	err = http.ListenAndServe(":3333", r)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
