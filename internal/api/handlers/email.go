@@ -18,7 +18,14 @@ func NewEmailHandler(databaseConnection *pgx.Conn) *EmailHandler {
 }
 
 func (e *EmailHandler) ListEmails(w http.ResponseWriter, r *http.Request) {
-	writeString(w, http.StatusNotFound, "Not implemented yet")
+	ctx := r.Context()
+	useCase := usecase.NewListEmail(e.databaseConnection)
+	emails, err := useCase.Execute(ctx)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, emails)
 }
 
 func (e *EmailHandler) CreateEmail(w http.ResponseWriter, r *http.Request) {

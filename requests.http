@@ -1,10 +1,13 @@
+### List emails
+GET http://localhost:3333/emails
+
 ### Create email
 POST http://localhost:3333/emails
 Content-Type: application/json
 
 {
   "recipient": "me@alexsandrobezerra.dev",
-  "subject": "Test",
+  "subject": "Test 2",
   "body": "Just a test...",
   "priority": 1
 }

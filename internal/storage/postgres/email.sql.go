@@ -37,3 +37,37 @@ func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtyp
 	err := row.Scan(&id)
 	return id, err
 }
+
+const listEmails = `-- name: ListEmails :many
+SELECT id, recipient, subject, body, priority, status, created_at
+FROM emails
+ORDER BY emails.created_at DESC
+`
+
+func (q *Queries) ListEmails(ctx context.Context) ([]Email, error) {
+	rows, err := q.db.Query(ctx, listEmails)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Email
+	for rows.Next() {
+		var i Email
+		if err := rows.Scan(
+			&i.ID,
+			&i.Recipient,
+			&i.Subject,
+			&i.Body,
+			&i.Priority,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
