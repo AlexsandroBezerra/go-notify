@@ -1,0 +1,13 @@
+services:
+  postgres:
+    container_name: go-notify-db
+    image: postgres:17.5-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
