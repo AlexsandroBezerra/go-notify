@@ -71,3 +71,19 @@ func (q *Queries) ListEmails(ctx context.Context) ([]Email, error) {
 	}
 	return items, nil
 }
+
+const updateEmailStatus = `-- name: UpdateEmailStatus :exec
+UPDATE emails
+SET status = $2
+WHERE id = $1
+`
+
+type UpdateEmailStatusParams struct {
+	ID     pgtype.UUID
+	Status DeliveryStatus
+}
+
+func (q *Queries) UpdateEmailStatus(ctx context.Context, arg UpdateEmailStatusParams) error {
+	_, err := q.db.Exec(ctx, updateEmailStatus, arg.ID, arg.Status)
+	return err
+}

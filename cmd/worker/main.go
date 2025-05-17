@@ -3,6 +3,8 @@ package main
 import (
 	"AlexsandroBezerra/go-notify/internal/queue/subject"
 	"AlexsandroBezerra/go-notify/internal/queue/subscriber"
+	"context"
+	"github.com/jackc/pgx/v5"
 	"github.com/nats-io/nats.go"
 	"log"
 	"sync"
@@ -11,18 +13,25 @@ import (
 const WorkerCount = 5
 
 func main() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	ctx := context.Background()
+
+	postgresConnection, err := pgx.Connect(ctx, "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
-	defer nc.Close()
+
+	natsConnection, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		panic(err)
+	}
+	defer natsConnection.Close()
 
 	wg := sync.WaitGroup{}
 
 	worker := func(id int) {
 		defer wg.Done()
-		handler := subscriber.NewEmailHandler(id)
-		subscription, err := nc.QueueSubscribe(subject.Email, "email-queue", handler.ProcessMessage)
+		handler := subscriber.NewEmailHandler(id, postgresConnection)
+		subscription, err := natsConnection.QueueSubscribe(subject.Email, "email-queue", handler.ProcessMessage)
 		if err != nil {
 			log.Printf("Error subscribing worker %d: %v\n", id, err)
 			return
