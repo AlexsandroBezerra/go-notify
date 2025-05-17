@@ -1,6 +1,7 @@
 package main
 
 import (
+	"AlexsandroBezerra/go-notify/internal/queue/subject"
 	"AlexsandroBezerra/go-notify/internal/queue/subscriber"
 	"github.com/nats-io/nats.go"
 	"log"
@@ -21,7 +22,7 @@ func main() {
 	worker := func(id int) {
 		defer wg.Done()
 		handler := subscriber.NewEmailHandler(id)
-		subscription, err := nc.QueueSubscribe("email", "email-queue", handler.ProcessMessage)
+		subscription, err := nc.QueueSubscribe(subject.Email, "email-queue", handler.ProcessMessage)
 		if err != nil {
 			log.Printf("Error subscribing worker %d: %v\n", id, err)
 			return

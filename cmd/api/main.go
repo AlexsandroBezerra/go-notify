@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/nats-io/nats.go"
 	"net/http"
 	"os"
 	"time"
@@ -20,6 +21,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	natsConnection, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		panic(err)
+	}
 
 	r := chi.NewRouter()
 
@@ -30,7 +35,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	emailRouter := router.NewEmailRouter(postgresConnection)
+	emailRouter := router.NewEmailRouter(postgresConnection, natsConnection)
 	emailRouter.RegisterRoutes(r)
 
 	err = http.ListenAndServe(":3333", r)

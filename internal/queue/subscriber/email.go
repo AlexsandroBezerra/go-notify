@@ -14,5 +14,5 @@ func NewEmailHandler(WorkerId int) *EmailHandler {
 }
 
 func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
-	log.Printf("[Worker %d (%d)] Received message: %s\n", eh.WorkerId, msg.Data)
+	log.Printf("[Worker %d] Received message: %s\n", eh.WorkerId, msg.Data)
 }
