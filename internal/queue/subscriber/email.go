@@ -6,19 +6,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"log"
 )
 
 type EmailHandler struct {
-	workerId           int
-	postgresConnection *pgx.Conn
+	workerId int
+	pgPool   *pgxpool.Pool
 }
 
-func NewEmailHandler(WorkerId int, postgresConnection *pgx.Conn) *EmailHandler {
-	return &EmailHandler{WorkerId, postgresConnection}
+func NewEmailHandler(WorkerId int, pgPool *pgxpool.Pool) *EmailHandler {
+	return &EmailHandler{WorkerId, pgPool}
 }
 
 func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
@@ -43,7 +43,7 @@ func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
 
 // TODO: Move to usecase
 func (eh *EmailHandler) updateStatus(ctx context.Context, ID string, status repository.DeliveryStatus) (err error) {
-	queries := repository.New(eh.postgresConnection)
+	queries := repository.New(eh.pgPool)
 	emailId := pgtype.UUID{}
 	err = emailId.Scan(ID)
 	if err != nil {

@@ -4,19 +4,19 @@ import (
 	"AlexsandroBezerra/go-notify/internal/application/dto/response"
 	repository "AlexsandroBezerra/go-notify/internal/storage/postgres"
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ListEmail struct {
-	databaseConnection *pgx.Conn
+	dbPool *pgxpool.Pool
 }
 
-func NewListEmail(databaseConnection *pgx.Conn) *ListEmail {
-	return &ListEmail{databaseConnection}
+func NewListEmail(dbPool *pgxpool.Pool) *ListEmail {
+	return &ListEmail{dbPool}
 }
 
 func (l *ListEmail) Execute(ctx context.Context) (response.ListEmail, error) {
-	queries := repository.New(l.databaseConnection)
+	queries := repository.New(l.dbPool)
 
 	emails, err := queries.ListEmails(ctx)
 	if err != nil {

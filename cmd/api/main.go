@@ -4,7 +4,7 @@ import (
 	"AlexsandroBezerra/go-notify/internal/api/router"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"net/http"
 	"os"
@@ -17,7 +17,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	postgresConnection, err := pgx.Connect(ctx, "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
+	dbPool, err := pgxpool.New(ctx, "postgres://postgres:password@localhost:5432/postgres?sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +35,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	emailRouter := router.NewEmailRouter(postgresConnection, natsConnection)
+	emailRouter := router.NewEmailRouter(dbPool, natsConnection)
 	emailRouter.RegisterRoutes(r)
 
 	err = http.ListenAndServe(":3333", r)

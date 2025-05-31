@@ -6,22 +6,22 @@ import (
 	"AlexsandroBezerra/go-notify/internal/queue/publisher"
 	repository "AlexsandroBezerra/go-notify/internal/storage/postgres"
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 )
 
 type CreateEmail struct {
-	databaseConnection *pgx.Conn
-	natsConnection     *nats.Conn
+	pgPool         *pgxpool.Pool
+	natsConnection *nats.Conn
 }
 
-func NewCreateEmail(databaseConnection *pgx.Conn, natsConnection *nats.Conn) *CreateEmail {
-	return &CreateEmail{databaseConnection, natsConnection}
+func NewCreateEmail(pgPool *pgxpool.Pool, natsConnection *nats.Conn) *CreateEmail {
+	return &CreateEmail{pgPool, natsConnection}
 }
 
 func (c *CreateEmail) Execute(ctx context.Context, params request.CreateEmail) (string, error) {
-	queries := repository.New(c.databaseConnection)
-	trx, err := c.databaseConnection.Begin(ctx)
+	queries := repository.New(c.pgPool)
+	trx, err := c.pgPool.Begin(ctx)
 	if err != nil {
 		return "", err
 	}

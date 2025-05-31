@@ -5,23 +5,23 @@ import (
 	"AlexsandroBezerra/go-notify/internal/application/dto/response"
 	"AlexsandroBezerra/go-notify/internal/application/usecase"
 	"encoding/json"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"net/http"
 )
 
 type EmailHandler struct {
-	databaseConnection *pgx.Conn
-	natsConnection     *nats.Conn
+	dbPool         *pgxpool.Pool
+	natsConnection *nats.Conn
 }
 
-func NewEmailHandler(databaseConnection *pgx.Conn, natsConnection *nats.Conn) *EmailHandler {
-	return &EmailHandler{databaseConnection, natsConnection}
+func NewEmailHandler(dbPool *pgxpool.Pool, natsConnection *nats.Conn) *EmailHandler {
+	return &EmailHandler{dbPool, natsConnection}
 }
 
 func (e *EmailHandler) ListEmails(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	useCase := usecase.NewListEmail(e.databaseConnection)
+	useCase := usecase.NewListEmail(e.dbPool)
 	emails, err := useCase.Execute(ctx)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
@@ -38,7 +38,7 @@ func (e *EmailHandler) CreateEmail(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	useCase := usecase.NewCreateEmail(e.databaseConnection, e.natsConnection)
+	useCase := usecase.NewCreateEmail(e.dbPool, e.natsConnection)
 	id, err := useCase.Execute(ctx, params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
