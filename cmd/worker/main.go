@@ -30,7 +30,7 @@ func main() {
 
 	worker := func(id int) {
 		defer wg.Done()
-		handler := subscriber.NewEmailHandler(id, pgPool)
+		handler := subscriber.NewEmailHandler(pgPool)
 		subscription, err := natsConnection.QueueSubscribe(subject.Email, "email-queue", handler.ProcessMessage)
 		if err != nil {
 			log.Printf("Error subscribing worker %d: %v\n", id, err)

@@ -11,8 +11,10 @@ A Project to send emails made with Go.
 ## Todo
 
 - [x] Add async processing (with NATS)
-- [ ] Use postgres pool
+- [x] Use postgres pool
 - [ ] Use UUID v7
+- [ ] Add pagination in email list
+- [ ] Add get email route
 - [ ] Add AWS SES
 - [ ] Improve logs
 - [ ] Improve error handling
