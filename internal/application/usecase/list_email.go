@@ -8,16 +8,17 @@ import (
 )
 
 type ListEmail struct {
-	queries *repository.Queries
+	databaseConnection *pgx.Conn
 }
 
 func NewListEmail(databaseConnection *pgx.Conn) *ListEmail {
-	queries := repository.New(databaseConnection)
-	return &ListEmail{queries}
+	return &ListEmail{databaseConnection}
 }
 
 func (l *ListEmail) Execute(ctx context.Context) (response.ListEmail, error) {
-	emails, err := l.queries.ListEmails(ctx)
+	queries := repository.New(l.databaseConnection)
+
+	emails, err := queries.ListEmails(ctx)
 	if err != nil {
 		return response.ListEmail{}, err
 	}

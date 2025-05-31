@@ -13,13 +13,12 @@ import (
 )
 
 type EmailHandler struct {
-	workerId int
-	queries  *repository.Queries
+	workerId           int
+	postgresConnection *pgx.Conn
 }
 
 func NewEmailHandler(WorkerId int, postgresConnection *pgx.Conn) *EmailHandler {
-	queries := repository.New(postgresConnection)
-	return &EmailHandler{WorkerId, queries}
+	return &EmailHandler{WorkerId, postgresConnection}
 }
 
 func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
@@ -32,7 +31,7 @@ func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
 		return
 	}
 
-	// TODO: Send email
+	// TODO: Send email in usecase
 
 	log.Printf("[Worker %d] Updating status to delivered to emailId: %s\n", eh.workerId, emailMsg.ID)
 
@@ -42,16 +41,18 @@ func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
 	}
 }
 
+// TODO: Move to usecase
 func (eh *EmailHandler) updateStatus(ctx context.Context, ID string, status repository.DeliveryStatus) (err error) {
+	queries := repository.New(eh.postgresConnection)
 	emailId := pgtype.UUID{}
 	err = emailId.Scan(ID)
 	if err != nil {
 		return errors.New("error scanning message uuid to update status")
 	}
 
-	err = eh.queries.UpdateEmailStatus(ctx, repository.UpdateEmailStatusParams{
-		ID:     emailId,
-		Status: status,
+	err = queries.CreateEmailStatus(ctx, repository.CreateEmailStatusParams{
+		EmailID: emailId,
+		Status:  status,
 	})
 	if err != nil {
 		return errors.New("error updating email status")

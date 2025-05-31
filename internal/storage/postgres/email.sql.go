@@ -12,8 +12,8 @@ import (
 )
 
 const createEmail = `-- name: CreateEmail :one
-INSERT INTO emails (recipient, subject, body, priority, status)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO emails (recipient, subject, body, priority)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
@@ -22,7 +22,6 @@ type CreateEmailParams struct {
 	Subject   string
 	Body      string
 	Priority  int16
-	Status    DeliveryStatus
 }
 
 func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtype.UUID, error) {
@@ -31,7 +30,6 @@ func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtyp
 		arg.Subject,
 		arg.Body,
 		arg.Priority,
-		arg.Status,
 	)
 	var id pgtype.UUID
 	err := row.Scan(&id)
@@ -39,28 +37,42 @@ func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtyp
 }
 
 const listEmails = `-- name: ListEmails :many
-SELECT id, recipient, subject, body, priority, status, created_at
-FROM emails
-ORDER BY emails.created_at DESC
+SELECT e.id, e.recipient, e.subject, e.body, e.priority, e.created_at, es.status
+FROM emails e
+         INNER JOIN public.email_status es ON e.id = es.email_id
+         INNER JOIN (SELECT MAX(id) id
+                     FROM email_status
+                     GROUP BY email_id) st ON es.id = st.id
+ORDER BY e.created_at DESC
 `
 
-func (q *Queries) ListEmails(ctx context.Context) ([]Email, error) {
+type ListEmailsRow struct {
+	ID        pgtype.UUID
+	Recipient string
+	Subject   string
+	Body      string
+	Priority  int16
+	CreatedAt pgtype.Timestamp
+	Status    DeliveryStatus
+}
+
+func (q *Queries) ListEmails(ctx context.Context) ([]ListEmailsRow, error) {
 	rows, err := q.db.Query(ctx, listEmails)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Email
+	var items []ListEmailsRow
 	for rows.Next() {
-		var i Email
+		var i ListEmailsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Recipient,
 			&i.Subject,
 			&i.Body,
 			&i.Priority,
-			&i.Status,
 			&i.CreatedAt,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -70,20 +82,4 @@ func (q *Queries) ListEmails(ctx context.Context) ([]Email, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateEmailStatus = `-- name: UpdateEmailStatus :exec
-UPDATE emails
-SET status = $2
-WHERE id = $1
-`
-
-type UpdateEmailStatusParams struct {
-	ID     pgtype.UUID
-	Status DeliveryStatus
-}
-
-func (q *Queries) UpdateEmailStatus(ctx context.Context, arg UpdateEmailStatusParams) error {
-	_, err := q.db.Exec(ctx, updateEmailStatus, arg.ID, arg.Status)
-	return err
 }

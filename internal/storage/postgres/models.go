@@ -15,6 +15,7 @@ type DeliveryStatus string
 
 const (
 	DeliveryStatusPending   DeliveryStatus = "pending"
+	DeliveryStatusFailed    DeliveryStatus = "failed"
 	DeliveryStatusDelivered DeliveryStatus = "delivered"
 )
 
@@ -59,6 +60,12 @@ type Email struct {
 	Subject   string
 	Body      string
 	Priority  int16
+	CreatedAt pgtype.Timestamp
+}
+
+type EmailStatus struct {
+	ID        int32
+	EmailID   pgtype.UUID
 	Status    DeliveryStatus
 	CreatedAt pgtype.Timestamp
 }
