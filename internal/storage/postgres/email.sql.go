@@ -11,60 +11,45 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createEmail = `-- name: CreateEmail :one
-INSERT INTO emails (recipient, subject, body, priority)
-VALUES ($1, $2, $3, $4)
-RETURNING id
+const createEmail = `-- name: CreateEmail :exec
+INSERT INTO emails (id, recipient, subject, body, priority)
+VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreateEmailParams struct {
-	Recipient string
-	Subject   string
-	Body      string
-	Priority  int16
-}
-
-func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, createEmail,
-		arg.Recipient,
-		arg.Subject,
-		arg.Body,
-		arg.Priority,
-	)
-	var id pgtype.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
-const listEmails = `-- name: ListEmails :many
-SELECT e.id, e.recipient, e.subject, e.body, e.priority, e.created_at, es.status
-FROM emails e
-         INNER JOIN public.email_status es ON e.id = es.email_id
-         INNER JOIN (SELECT MAX(id) id
-                     FROM email_status
-                     GROUP BY email_id) st ON es.id = st.id
-ORDER BY e.created_at DESC
-`
-
-type ListEmailsRow struct {
 	ID        pgtype.UUID
 	Recipient string
 	Subject   string
 	Body      string
 	Priority  int16
-	CreatedAt pgtype.Timestamp
-	Status    DeliveryStatus
 }
 
-func (q *Queries) ListEmails(ctx context.Context) ([]ListEmailsRow, error) {
+func (q *Queries) CreateEmail(ctx context.Context, arg CreateEmailParams) error {
+	_, err := q.db.Exec(ctx, createEmail,
+		arg.ID,
+		arg.Recipient,
+		arg.Subject,
+		arg.Body,
+		arg.Priority,
+	)
+	return err
+}
+
+const listEmails = `-- name: ListEmails :many
+SELECT e.id, e.recipient, e.subject, e.body, e.priority, e.created_at
+FROM emails e
+ORDER BY e.created_at DESC
+`
+
+func (q *Queries) ListEmails(ctx context.Context) ([]Email, error) {
 	rows, err := q.db.Query(ctx, listEmails)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListEmailsRow
+	var items []Email
 	for rows.Next() {
-		var i ListEmailsRow
+		var i Email
 		if err := rows.Scan(
 			&i.ID,
 			&i.Recipient,
@@ -72,7 +57,6 @@ func (q *Queries) ListEmails(ctx context.Context) ([]ListEmailsRow, error) {
 			&i.Body,
 			&i.Priority,
 			&i.CreatedAt,
-			&i.Status,
 		); err != nil {
 			return nil, err
 		}

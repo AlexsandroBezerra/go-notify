@@ -12,7 +12,6 @@ type Email struct {
 	Subject   string    `json:"subject"`
 	Body      string    `json:"body"`
 	Priority  int16     `json:"priority"`
-	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

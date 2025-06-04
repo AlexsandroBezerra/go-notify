@@ -64,7 +64,7 @@ type Email struct {
 }
 
 type EmailStatus struct {
-	ID        int32
+	ID        pgtype.UUID
 	EmailID   pgtype.UUID
 	Status    DeliveryStatus
 	CreatedAt pgtype.Timestamp

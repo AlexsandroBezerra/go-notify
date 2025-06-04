@@ -12,17 +12,18 @@ import (
 )
 
 const createEmailStatus = `-- name: CreateEmailStatus :exec
-INSERT INTO email_status (email_id, status)
-VALUES ($1, $2)
+INSERT INTO email_status (id, email_id, status)
+VALUES ($1, $2, $3)
 `
 
 type CreateEmailStatusParams struct {
+	ID      pgtype.UUID
 	EmailID pgtype.UUID
 	Status  DeliveryStatus
 }
 
 func (q *Queries) CreateEmailStatus(ctx context.Context, arg CreateEmailStatusParams) error {
-	_, err := q.db.Exec(ctx, createEmailStatus, arg.EmailID, arg.Status)
+	_, err := q.db.Exec(ctx, createEmailStatus, arg.ID, arg.EmailID, arg.Status)
 	return err
 }
 

@@ -31,7 +31,6 @@ func (l *ListEmail) Execute(ctx context.Context) (response.ListEmail, error) {
 			Subject:   email.Subject,
 			Body:      email.Body,
 			Priority:  email.Priority,
-			Status:    string(email.Status),
 			CreatedAt: email.CreatedAt.Time,
 		})
 	}

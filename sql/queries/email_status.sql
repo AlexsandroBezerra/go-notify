@@ -11,5 +11,5 @@ WHERE status = ($1)
 LIMIT 1;
 
 -- name: CreateEmailStatus :exec
-INSERT INTO email_status (email_id, status)
-VALUES ($1, $2);
+INSERT INTO email_status (id, email_id, status)
+VALUES ($1, $2, $3);
