@@ -26,22 +26,24 @@ func (eh *EmailHandler) ProcessMessage(msg *nats.Msg) {
 	err := json.Unmarshal(msg.Data, &emailMsg)
 	if err != nil {
 		log.Fatalln("Error unmarshalling emailMsg")
-		return
 	}
 
 	processEmailUseCase := usecase.NewProcessEmail(eh.pgPool)
+	updateStatusUseCase := usecase.NewUpdateEmailStatus(eh.pgPool)
+
 	err = processEmailUseCase.Execute(ctx, emailMsg)
 	if err != nil {
+		err = updateStatusUseCase.Execute(ctx, emailMsg.ID, repository.DeliveryStatusFailed)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		log.Fatalln(err)
-		return
 	}
 	log.Printf("Email %s processed\n", emailMsg.ID)
 
-	updateStatusUseCase := usecase.NewUpdateEmailStatus(eh.pgPool)
 	err = updateStatusUseCase.Execute(ctx, emailMsg.ID, repository.DeliveryStatusDelivered)
 	if err != nil {
 		log.Fatalln(err)
-		return
 	}
 
 	err = msg.Ack()
